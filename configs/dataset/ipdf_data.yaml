@@ -1,0 +1,15 @@
+root_path: "data"
+# Comment the line below to train on all categories. (i.e., do not specify the categories)
+#categories: ["bottle"]
+dataset_dir: "DFCData"
+hand_global_trans: [0, -0.7, 0.2]
+hand_global_rotation_xyz: [-1.57, 0, 3.14]
+
+##### DFCData #####
+num_obj_points: 1024
+num_hand_points: 1024
+
+# shadow_hand_mesh_dir: "shadow_urdf/sr_grasp_description/meshes"
+# shadow_urdf_path: "shadow_urdf/sr_grasp_description/urdf/shadowhand.urdf"
+shadow_hand_mesh_dir: "mjcf/meshes"
+shadow_urdf_path: "mjcf/shadow_hand.xml"
