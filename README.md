@@ -5,6 +5,46 @@ Coming soon.
 
 ![image](./images/teaser.png)
 
+
+## Installation
+
+Our code is tested on Ubuntu **TODO**.
+
+* Clone this repository:
+```commandline
+git clone https://github.com/PKU-EPIC/UniDexGrasp.git
+cd UniDexGrasp
+```
+
+* Create a [conda](https://www.anaconda.com/) environment and activate it:
+```commandline
+conda create -n unidexgrasp python=TODO
+conda activate unidexgrasp
+```
+
+* Install the dependencies: (**TODO**)
+```commandline
+pip install -r requirements.txt
+```
+
+**TODO**: other manually-installed dependencies
+
+
+## Data
+
+**TODO**.
+
+
+## Training
+
+**TODO**.
+
+
+## Evaluation
+
+**TODO**.
+
+
 ## Citation
 
 ```
@@ -15,3 +55,9 @@ Coming soon.
   year={2023}
 }
 ```
+
+
+## Acknowledgement
+
+* [PointNet++](https://github.com/rusty1s/pytorch_geometric)
+* [Implicit PDF](https://github.com/google-research/google-research/tree/master/implicit_pdf)
