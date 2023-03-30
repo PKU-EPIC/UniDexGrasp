@@ -1,6 +1,8 @@
 # UniDexGrasp
 Official code for "**UniDexGrasp: Universal Robotic Dexterous Grasping via Learning Diverse Proposal Generation and Goal-Conditioned Policy**" *(CVPR 2023)*
 
+[Project Page](https://pku-epic.github.io/UniDexGrasp/) | [Paper](https://arxiv.org/abs/2303.00938)
+
 Coming soon.
 
 ![image](./images/teaser.png)
