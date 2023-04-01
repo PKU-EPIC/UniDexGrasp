@@ -3,13 +3,14 @@ import logging
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
-from network.data.dataset import get_dex_dataloader
+from data.dataset import get_dex_dataloader
 from trainer import Trainer
 from utils.global_utils import log_loss_summary, add_dict
 from omegaconf import OmegaConf
 from omegaconf.omegaconf import open_dict
 import os
 from os.path import join as pjoin
+from tqdm import tqdm
 
 import argparse
 
@@ -60,14 +61,14 @@ def main(cfg):
     test_loader = get_dex_dataloader(cfg, "test")
 
     """ Trainer """
-    input_size = train_loader.dataset[0]["features"].shape[0]
+    input_size = len(train_loader) #train_loader.dataset[0]["features"].shape[0]
     trainer = Trainer(input_size, cfg, logger)
     start_epoch = trainer.resume()
 
     """ Test """
     def test_all(dataloader, mode, epoch):
         test_loss = {}
-        for data in dataloader:
+        for _, data in enumerate(tqdm(dataloader)):
             _, loss_dict = trainer.test(data)
             loss_dict["cnt"] = 1
             add_dict(test_loss, loss_dict)
@@ -82,7 +83,7 @@ def main(cfg):
     with InterruptHandler() as h:
         train_loss = {}
         for epoch in range(start_epoch, cfg["total_epoch"]):
-            for data in train_loader:
+            for _, data in enumerate(tqdm(train_loader)):
                 loss_dict = trainer.update(data)
                 loss_dict["cnt"] = 1
                 add_dict(train_loss, loss_dict)

@@ -163,26 +163,19 @@ class DFCDataset(Dataset):
                 "obj_gt_rotation": obj_gt_rotation,
                 "world_frame_hand_rotation_mat": global_rotation_mat,
             }
-        elif self.cfg["network_type"] == "grasp_net":  # TODO: 2: glow
-            obj_pc = obj_pc @ global_rotation_mat
+        elif self.cfg["network_type"] == "glow":  # TODO: 2: glow
+            canon_obj_pc = obj_pc @ global_rotation_mat
             hand_rotation_mat = np.eye(3)
             hand_translation = global_translation @ global_rotation_mat
-            hand_mesh = self.hand_builder.get_hand_mesh(hand_rotation_mat,
-                                                          hand_translation,
-                                                          qpos=qpos)
-            hand_pc = sample_points_from_meshes(
-                hand_mesh,
-                num_samples=self.num_hand_points
-            ).type(torch.float32).squeeze()  # torch.tensor: [NH, 3]
+            plane = torch.zeros_like(torch.from_numpy(plane))
+            plane[..., 2] = 1
             ret_dict = {
-                "canon_obj_pc": obj_pc,
-                "world_frame_hand_translation": hand_translation,
+                "obj_pc": obj_pc,
+                "canon_obj_pc": canon_obj_pc,
                 "hand_qpos": qpos,
-                "hand_pc": hand_pc,
-                "obj_rot_mat": global_rotation_mat.T,
-                # some aliases
-                "hand_root_global_rotation": hand_rotation_mat,
-                "hand_root_global_translation": hand_translation
+                "canon_rotation": hand_rotation_mat,
+                "canon_translation": hand_translation,
+                "plane": plane
             }
         elif self.cfg["network_type"] == "cm_net":  # TODO: 2: Contact Map
             # Canonicalize pc

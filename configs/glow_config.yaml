@@ -1,0 +1,55 @@
+defaults:
+    - _self_
+    - model: glow
+    - dataset: glow_data
+    - override hydra/hydra_logging: none
+    - override hydra/job_logging: none
+
+network_type: glow
+use_DFCData: True
+use_Shadow: True
+
+# dirs
+exp_dir: ./runs/exp_tmp
+
+# wandb
+wandb_offline: True
+wandb_debug_mode: True  # and only program error will be reported
+
+# frequency
+freq:
+    save: 1000  # per iter
+    plot: 100  # per iter, but this will step the "epoch" as if one epoch is just ${plot} iterations.
+               # Otherwise because of the large amount of data it takes too long for plotting.
+    test: 1000 # per iter
+
+# optimization options
+optimizer: Adam
+weight_decay: 0.0001
+learning_rate: 0.001
+lr_policy: step
+lr_gamma: 0.5 # lr decay rate
+lr_step_size: 40
+lr_clip: 0.00001 # min lr
+
+# bn momentum adjustment
+momentum_original: 0.1
+momentum_decay: 0.5
+momentum_step_size: 20  # = lr_step_size
+momentum_min: 0.01
+
+# training options
+weight_init: xavier
+total_epoch: 250
+resume_epoch: -1
+
+# device
+cuda_id: 0
+
+# data loader
+num_workers: 1
+batch_size: 16
+
+# hydra
+hydra:
+    output_subdir: null

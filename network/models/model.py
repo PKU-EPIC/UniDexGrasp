@@ -11,6 +11,7 @@ sys.path.insert(0, pjoin(base_path, '..'))
 sys.path.insert(0, pjoin(base_path, '..', '..'))
 
 from network.models.graspipdf.ipdf_network import IPDFFullNet
+from network.models.graspglow.glow_network import DexGlowNet
 
 
 class BaseModel(nn.Module):
@@ -85,5 +86,31 @@ class IPDFModel(BaseModel):
             sampled_rotation = self.net.sample_rotations(self.feed_dict)  # [B, 3, 3]
             self.pred_dict["sampled_rotation"] = sampled_rotation  # [B, 3, 3]
 
+            if not no_eval:
+                self.compute_loss()
+
+class GlowModel(BaseModel):
+    def __init__(self, cfg):
+        super(GlowModel, self).__init__(cfg)
+        self.net = DexGlowNet(cfg).to(self.device)
+
+    def compute_loss(self):
+        pred_dict = self.pred_dict
+        loss_dict = {}
+
+        loss_dict['nll'] = torch.mean(pred_dict['nll'])
+        loss_dict['cmap_loss'] = torch.mean(pred_dict['cmap_loss'])
+
+        self.summarize_losses(loss_dict)
+
+        # for logging
+        for key in pred_dict.keys():
+            if 'cmap_part' in key:
+                loss_dict[key] = torch.mean(pred_dict[key])
+
+    def test(self, save=False, no_eval=False, epoch=0):
+        self.loss_dict = {}
+        with torch.no_grad():
+            self.pred_dict = self.net(self.feed_dict)
             if not no_eval:
                 self.compute_loss()

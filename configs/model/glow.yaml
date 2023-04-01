@@ -1,0 +1,17 @@
+network:
+  type: pointnet
+
+flow:
+  points: 22
+  feature_dim: 1024
+  hidden_dim: 64
+  layer: 21
+  block: 2
+
+
+sample: 0
+sample_num: 8
+
+loss_weight:
+  nll: 1.0
+  cmap_loss: 1.0

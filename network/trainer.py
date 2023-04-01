@@ -15,7 +15,7 @@ base_dir = os.path.dirname(__file__)
 sys.path.append(pjoin(base_dir, '..'))
 sys.path.append(pjoin(base_dir, '..', '..'))
 
-from network.models.model import IPDFModel
+from network.models.model import IPDFModel, GlowModel
 from utils.global_utils import update_dict
 
 
@@ -95,13 +95,15 @@ class Trainer(nn.Module):
 
         if cfg["network_type"] == "ipdf":
             self.model = IPDFModel(cfg)
+        elif cfg["network_type"] == "glow":
+            self.model = GlowModel(cfg)
 
         self.optimizer = get_optimizer([p for p in self.model.parameters() if p.requires_grad], cfg)
         self.scheduler = get_scheduler(self.optimizer, cfg)
 
         self.apply(weights_init(cfg['weight_init']))
 
-        self.epoch = 0
+        self.epoch = 1
         self.iteration = 0
         self.loss_dict = {}
 
