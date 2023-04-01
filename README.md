@@ -10,7 +10,7 @@ Coming soon.
 
 ## Installation
 
-Our code is tested on Ubuntu **TODO**.
+Our code is tested on (Ubuntu xx.xx **TODO**).
 
 * Clone this repository:
 ```commandline
@@ -39,8 +39,29 @@ pip install -r requirements.txt
 
 ## Training
 
-**TODO**.
+### GraspIPDF
 
+```commandline
+python ./network/train.py --config-name ipdf_config \
+                          --exp-dir ./ipdf_train
+```
+
+### GraspGlow
+
+```commandline
+python ./network/train.py --config-name glow_config \
+                          --exp-dir ./glow_train
+```
+
+### ContactNet
+
+```commandline
+python ./network/train.py TODO
+```
+
+### Policy
+
+TODO
 
 ## Evaluation
 
@@ -63,4 +84,3 @@ pip install -r requirements.txt
 
 * [PointNet++](https://github.com/rusty1s/pytorch_geometric)
 * [Implicit PDF](https://github.com/google-research/google-research/tree/master/implicit_pdf)
-
