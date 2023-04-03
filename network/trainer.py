@@ -85,7 +85,7 @@ def get_last_model(dirname, key=""):
 
 
 class Trainer(nn.Module):
-    def __init__(self, input_size, cfg, logger):
+    def __init__(self, cfg, logger):
         super(Trainer, self).__init__()
 
         self.cfg = cfg

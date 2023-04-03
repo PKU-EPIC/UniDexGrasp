@@ -44,6 +44,7 @@ def main(cfg):
 
     """ Logging """
     log_dir = cfg["exp_dir"]
+    os.makedirs(log_dir, exist_ok=True)
 
     logger = logging.getLogger("TrainModel")
     logger.setLevel(logging.INFO)
@@ -61,8 +62,7 @@ def main(cfg):
     test_loader = get_dex_dataloader(cfg, "test")
 
     """ Trainer """
-    input_size = len(train_loader) #train_loader.dataset[0]["features"].shape[0]
-    trainer = Trainer(input_size, cfg, logger)
+    trainer = Trainer(cfg, logger)
     start_epoch = trainer.resume()
 
     """ Test """
@@ -91,7 +91,7 @@ def main(cfg):
                 if trainer.iteration % cfg["freq"]["plot"] == 0:
                     cnt = train_loss.pop("cnt")
                     log_loss_summary(train_loss, cnt,
-                                    lambda x, y: logger.info(f"Train {x} is {y}"))
+                                     lambda x, y: logger.info(f"Train {x} is {y}"))
                     log_tensorboard(writer, "train", train_loss, cnt, epoch)
 
                     trainer.step_epoch()
@@ -114,7 +114,7 @@ def main(cfg):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config-name", type=str, default="ipdf_config.yaml")
+    parser.add_argument("--config-name", type=str, default="ipdf_config")
     parser.add_argument("--exp-dir", type=str, help="E.g., './ipdf_train'.")
     return parser.parse_args()
 
