@@ -12,12 +12,7 @@ import numpy as np
 from pytorch3d.transforms import random_rotations
 from scipy.spatial.transform import Rotation as R
 
-BASEPATH = os.path.dirname(__file__)
-sys.path.insert(0, BASEPATH)
-sys.path.insert(0, pjoin(BASEPATH, '..'))
-sys.path.insert(0, pjoin(BASEPATH, '..', '..'))
-
-from pn_utils import PointNetPPFeat
+from network.models.backbones.pointnetpp_encoder import PointNetPPFeat
 
 
 class PointNetPP(nn.Module):

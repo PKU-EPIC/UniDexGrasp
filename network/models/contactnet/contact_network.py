@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import sys
 import os
 from os.path import join as pjoin
-from utils.pointnet_encoder import PointNetEncoder
+from network.models.backbones.pointnet_encoder import PointNetEncoder
 
 
 class ContactMapNet(nn.Module):
