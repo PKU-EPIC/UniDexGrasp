@@ -14,4 +14,5 @@ num_hand_points: 1024
 shadow_hand_mesh_dir: "mjcf/meshes"
 shadow_urdf_path: "mjcf/shadow_hand.xml"
 
+perturb: True
 fps: True

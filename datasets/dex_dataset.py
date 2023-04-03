@@ -149,7 +149,10 @@ class DFCDataset(Dataset):
         table_pc_cropped_sampled = pytorch3d.ops.sample_farthest_points(table_pc_cropped.unsqueeze(0), K=1000)[0][0]
         object_pc = (torch.cat([object_pc, table_pc_cropped_sampled]) - pose_matrix[:3, 3] / recorded_data['scale'].item()) @ pose_matrix[:3, :3]  # [N, 3]
 
-        obj_pc = pytorch3d.ops.sample_farthest_points(object_pc.unsqueeze(0), K=self.num_obj_points)[0][0]  # [NO, 3]
+        if self.dataset_cfg['fps']:
+            obj_pc = pytorch3d.ops.sample_farthest_points(object_pc.unsqueeze(0), K=self.num_obj_points)[0][0]  # [NO, 3]
+        else:
+            obj_pc = object_pc
 
         if self.cfg["network_type"] == "ipdf":
             plane_pose = plane2pose(plane)
@@ -190,7 +193,7 @@ class DFCDataset(Dataset):
                 gt_hand_mesh,
                 num_samples=self.num_hand_points
             ).type(torch.float32).squeeze()  # torch.tensor: [NH, 3]
-            contact_map = contact_map_of_m_to_n(torch.Tensor(obj_pc), gt_hand_pc)  # [NO]
+            contact_map = contact_map_of_m_to_n(obj_pc, gt_hand_pc)  # [NO]
 
             ret_dict = {
                 "canon_obj_pc": obj_pc,

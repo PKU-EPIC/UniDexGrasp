@@ -1,17 +1,13 @@
 import os
 import sys
 from os.path import join as pjoin
-from .pointnet_encoder import PointNetEncoder
+from utils.pointnet_encoder import PointNetEncoder
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
 
 from nflows.flows.glow import ConditionalGlow # from ProHMR
 #from hand_model import HandModel
-
-BASEPATH = os.path.dirname(__file__)
-sys.path.insert(0, pjoin(BASEPATH, '..'))
-sys.path.insert(0, pjoin(BASEPATH, '..', '..'))
 
 class Glow(nn.Module):
     def __init__(self, cfg) -> None:
@@ -63,7 +59,7 @@ class DexGlowNet(nn.Module):
 
         # [B, 3, N] -> [B, 128, N]
         if cfg['model']['network']['type'] == 'pointnet':
-            self.encoder = PointNetEncoder(global_feat=True, feature_transform=False, channel=3)
+            self.encoder = PointNetEncoder(global_feat=True, feature_transform=False, channel=3, use_stn=True)
         else:
             raise NotImplementedError(f"backbone {cfg['model']['network']['type']} not implemented")
         

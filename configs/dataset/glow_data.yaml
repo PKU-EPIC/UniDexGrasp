@@ -13,3 +13,5 @@ num_hand_points: 1024
 # shadow_urdf_path: "shadow_urdf/sr_grasp_description/urdf/shadowhand.urdf"
 shadow_hand_mesh_dir: "mjcf/meshes"
 shadow_urdf_path: "mjcf/shadow_hand.xml"
+
+fps: False

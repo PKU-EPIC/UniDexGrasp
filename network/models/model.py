@@ -10,8 +10,10 @@ sys.path.insert(0, base_path)
 sys.path.insert(0, pjoin(base_path, '..'))
 sys.path.insert(0, pjoin(base_path, '..', '..'))
 
+from network.models.loss import discretize_gt_cm
 from network.models.graspipdf.ipdf_network import IPDFFullNet
 from network.models.graspglow.glow_network import DexGlowNet
+from network.models.contactnet.contact_network import ContactMapNet
 
 
 class BaseModel(nn.Module):
@@ -107,6 +109,39 @@ class GlowModel(BaseModel):
         for key in pred_dict.keys():
             if 'cmap_part' in key:
                 loss_dict[key] = torch.mean(pred_dict[key])
+
+    def test(self, save=False, no_eval=False, epoch=0):
+        self.loss_dict = {}
+        with torch.no_grad():
+            self.pred_dict = self.net(self.feed_dict)
+            if not no_eval:
+                self.compute_loss()
+
+class ContactModel(BaseModel):
+    def __init__(self, cfg):
+        super(ContactModel, self).__init__(cfg)
+        self.net = ContactMapNet(cfg).to(self.device)
+
+        self.cm_loss = nn.MSELoss()
+        self.cm_bin_loss = nn.CrossEntropyLoss()
+
+    def compute_loss(self):
+        loss_dict = {}
+
+        gt_contact_map = self.feed_dict['contact_map']
+        pred_contact_map = self.pred_dict['contact_map']
+
+        if len(pred_contact_map.shape) == 2:
+            # pred_contact_map: [B, N]
+            loss_dict["contact_map"] = self.cm_loss(pred_contact_map, gt_contact_map)
+        elif len(pred_contact_map.shape) == 3:
+            # pred_contact_map: [B, N, 10]
+            gt_bins = discretize_gt_cm(gt_contact_map, num_bins=pred_contact_map.shape[-1])  # [B, N, 10]
+            gt_bins_labels = torch.argmax(gt_bins, dim=-1)  # [B, N]
+            pred_contact_map = pred_contact_map.transpose(2, 1)  # [B, 10, N]
+            loss_dict["contact_map"] = self.cm_bin_loss(pred_contact_map, gt_bins_labels)
+
+        self.summarize_losses(loss_dict)
 
     def test(self, save=False, no_eval=False, epoch=0):
         self.loss_dict = {}
