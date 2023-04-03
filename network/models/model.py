@@ -61,7 +61,7 @@ class BaseModel(nn.Module):
 class IPDFModel(BaseModel):
     def __init__(self, cfg):
         super(IPDFModel, self).__init__(cfg)
-        self.net = IPDFFullNet(cfg)
+        self.net = IPDFFullNet(cfg).to(self.device)
 
     def compute_loss(self):
         pred_dict = self.pred_dict
