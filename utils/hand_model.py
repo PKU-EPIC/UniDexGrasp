@@ -15,7 +15,7 @@ import pytorch3d.ops
 import pytorch3d.transforms
 from csdf import index_vertices_by_faces, compute_sdf
 
-class TTA(nn.Module):
+class AdditionalLoss(nn.Module):
     def __init__(self, tta_cfg, device, num_obj_points, num_hand_points, cmap_net):
         super().__init__()
         self.num_obj_points = num_obj_points

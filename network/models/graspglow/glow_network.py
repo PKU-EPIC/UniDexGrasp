@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 from nflows.flows.glow import ConditionalGlow # from ProHMR
-from utils.hand_model import TTA
+from utils.hand_model import AdditionalLoss
 
 class Glow(nn.Module):
     def __init__(self, cfg) -> None:
@@ -54,7 +54,7 @@ class DexGlowNet(nn.Module):
         super(DexGlowNet, self).__init__()
         self.cfg = cfg
         self.sample_func = rotation_net.sample_rotations if rotation_net else None #sample_func
-        self.cmap_func = TTA(cfg['model']['tta'], device, cfg['dataset']['num_obj_points'], cfg['dataset']['num_hand_points'], contact_net) if contact_net else None 
+        self.cmap_func = AdditionalLoss(cfg['model']['tta'], device, cfg['dataset']['num_obj_points'], cfg['dataset']['num_hand_points'], contact_net) if contact_net else None 
 
         # [B, 3, N] -> [B, 128, N]
         if cfg['model']['network']['type'] == 'pointnet':
