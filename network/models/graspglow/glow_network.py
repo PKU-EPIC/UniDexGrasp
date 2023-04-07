@@ -5,9 +5,8 @@ from network.models.backbones.pointnet_encoder import PointNetEncoder
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-
 from nflows.flows.glow import ConditionalGlow # from ProHMR
-#from hand_model import HandModel
+from utils.hand_model import TTA
 
 class Glow(nn.Module):
     def __init__(self, cfg) -> None:
@@ -51,11 +50,11 @@ class DexGlowNet(nn.Module):
     """
     PointNet or Point Transformer all integrated in this class.
     """
-    def __init__(self, cfg):
+    def __init__(self, cfg, device, rotation_net=None, contact_net=None):
         super(DexGlowNet, self).__init__()
         self.cfg = cfg
-        self.sample_func = None #sample_func
-        self.cmap_func = None #cmap_func
+        self.sample_func = rotation_net.sample_rotations if rotation_net else None #sample_func
+        self.cmap_func = TTA(cfg['model']['tta'], device, cfg['dataset']['num_obj_points'], cfg['dataset']['num_hand_points'], contact_net) if contact_net else None 
 
         # [B, 3, N] -> [B, 128, N]
         if cfg['model']['network']['type'] == 'pointnet':
@@ -151,6 +150,7 @@ class DexGlowNet(nn.Module):
             sr_samples, sr_log_prob = self.flow.sample_and_log_prob(self.sample_num, sr_feat)
             sr_trans_samples, sr_qpos_samples = sr_samples
             sr_max_index = torch.argmax(sr_log_prob, dim=-1)
+            arange = torch.arange(0, batch_size, device=sr_max_index.device, dtype=torch.long)
             sr_sel_qpos = sr_qpos_samples[arange, sr_max_index].reshape(batch_size, -1)
             sr_sel_trans = sr_trans_samples[arange, sr_max_index].reshape(batch_size, 3)
             ret_dict['sr_rotation'] = sr_rotation

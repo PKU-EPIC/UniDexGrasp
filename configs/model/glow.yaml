@@ -1,3 +1,5 @@
+joint_training: False
+
 network:
   type: pointnet
 

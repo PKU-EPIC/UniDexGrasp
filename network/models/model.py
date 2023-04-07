@@ -4,6 +4,9 @@ import os
 import sys
 from os.path import join as pjoin
 from abc import abstractmethod
+from copy import deepcopy
+from hydra import compose
+from omegaconf.omegaconf import open_dict
 
 base_path = os.path.dirname(__file__)
 sys.path.insert(0, base_path)
@@ -94,7 +97,19 @@ class IPDFModel(BaseModel):
 class GlowModel(BaseModel):
     def __init__(self, cfg):
         super(GlowModel, self).__init__(cfg)
-        self.net = DexGlowNet(cfg).to(self.device)
+        if cfg['model']['joint_training']:
+            rotation_cfg = compose(f"{cfg['model']['rotation_net']['type']}_config")
+            with open_dict(rotation_cfg):
+                rotation_cfg['device'] = self.device
+            self.rotation_net = IPDFFullNet(rotation_cfg).to(self.device)
+            contact_cfg = compose(f"{cfg['model']['contact_net']['type']}_config")
+            with open_dict(contact_cfg):
+                contact_cfg['device'] = self.device
+            self.contact_net = ContactMapNet(contact_cfg).to(self.device)
+        else:
+            self.rotation_net = None
+            self.contact_net = None
+        self.net = DexGlowNet(cfg, self.device, self.rotation_net, self.contact_net).to(self.device)
 
     def compute_loss(self):
         pred_dict = self.pred_dict
