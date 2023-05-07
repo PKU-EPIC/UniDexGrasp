@@ -47,6 +47,12 @@ class AdditionalLoss(nn.Module):
         cmap = 2 - 2 * torch.sigmoid(self.normalize_factor * (hand['distances'].abs() + 1e-8).sqrt())  # calculate pseudo contactmap: 0~3cm mapped into value 1~0
         loss, losses = cal_loss(hand, cmap, cmap_pred, points, plane_parameters, self.num_obj_points, **self.weights, verbose=True)
         return loss, losses
+    
+    def tta_loss(self, hand_pose, points, cmap_pred, plane_parameters):
+        hand = self.hand_model(hand_pose, points, with_penetration=True, with_surface_points=True, with_contact_candidates=True, with_penetration_keypoints=True)
+        cmap = 2 - 2 * torch.sigmoid(self.normalize_factor * (hand['distances'].abs() + 1e-8).sqrt())
+        loss = cal_loss(hand, cmap, cmap_pred, points, plane_parameters, self.num_obj_points, **self.weights)
+        return loss
 
 def cal_loss(hand, cmap_labels, cmap_pred, object_pc, plane_parameters, num_obj_points, verbose=False, weight_cmap=1., weight_pen=1., weight_dis=1., weight_spen=1., weight_tpen=1., thres_dis=0.02):
 

@@ -50,11 +50,11 @@ class DexGlowNet(nn.Module):
     """
     PointNet or Point Transformer all integrated in this class.
     """
-    def __init__(self, cfg, device, rotation_net=None, contact_net=None):
+    def __init__(self, cfg, rotation_net=None, contact_net=None):
         super(DexGlowNet, self).__init__()
         self.cfg = cfg
         self.sample_func = rotation_net.sample_rotations if rotation_net else None #sample_func
-        self.cmap_func = AdditionalLoss(cfg['model']['tta'], device, cfg['dataset']['num_obj_points'], cfg['dataset']['num_hand_points'], contact_net) if contact_net else None 
+        self.cmap_func = AdditionalLoss(cfg['model']['tta'], cfg['device'], cfg['dataset']['num_obj_points'], cfg['dataset']['num_hand_points'], contact_net) if contact_net else None 
 
         # [B, 3, N] -> [B, 128, N]
         if cfg['model']['network']['type'] == 'pointnet':
@@ -75,7 +75,6 @@ class DexGlowNet(nn.Module):
         )
         '''
         self.flow = Glow(cfg)
-        self.sample = cfg['model']['sample']
 
     def prepare_data(self, obj_pc):
         """
@@ -99,6 +98,36 @@ class DexGlowNet(nn.Module):
                f"batch should be [{batch_size} * {N}] = [{batch_size * N}], but got {batch.shape} instead."
 
         return x, pos, batch
+    
+    def sample(self, dic):
+        ret_dict = {}
+
+        if not 'canon_obj_pc' in dic.keys():
+            dic['canon_obj_pc'] = torch.einsum('nab,nbc->nac', dic['obj_pc'], dic['sampled_rotation'])
+            plane = dic['plane'].clone()
+            plane[:, :3] = torch.einsum('nb,nbc->nc',plane[:, :3], dic['sampled_rotation'])
+            ret_dict['canon_plane'] = plane
+            
+        pc = dic['canon_obj_pc']
+        batch_size=pc.shape[0]
+        pc_transformed = pc.transpose(1, 2).contiguous()  # [B, 3, N]
+        feat, _, _ = self.encoder(pc_transformed)
+
+        samples, log_prob = self.flow.sample_and_log_prob(self.sample_num, feat)
+        trans_samples, qpos_samples = samples
+        max_index = torch.argmax(log_prob, dim=-1)
+        arange = torch.arange(0, batch_size, device=qpos_samples.device, dtype=torch.long)
+        sel_qpos = qpos_samples[arange, max_index].reshape(batch_size, -1)
+        sel_trans = trans_samples[arange, max_index].reshape(batch_size, 3)
+
+        ret_dict['translation'] = sel_trans
+        ret_dict['hand_qpos'] = sel_qpos
+        ret_dict['sampled_translation'] = trans_samples
+        ret_dict['sampled_hand_qpos'] = qpos_samples
+        ret_dict['entropy'] = -log_prob.mean(dim=-1)    
+        ret_dict['canon_obj_pc'] = dic['canon_obj_pc']
+
+        return ret_dict
 
     def forward(self, dic): 
         """
@@ -111,10 +140,12 @@ class DexGlowNet(nn.Module):
             }
 
         """
+        if not 'canon_translation' in dic:
+            return dict()
+            
         raw_pc = dic['obj_pc']
         pc = dic['canon_obj_pc']
         gt = (dic['canon_translation'], dic['hand_qpos'])
-        raw_plane = dic['plane']
 
         batch_size=pc.shape[0]
         pc_transformed = pc.transpose(1, 2).contiguous()  # [B, 3, N]
@@ -122,23 +153,10 @@ class DexGlowNet(nn.Module):
 
         ret_dict = {}
 
-        if gt is not None:
-            ret_dict['nll'] = -self.flow.log_prob(gt, feat)
-
-        if self.sample:
-            samples, log_prob = self.flow.sample_and_log_prob(self.sample_num, feat)
-            trans_samples, qpos_samples = samples
-            max_index = torch.argmax(log_prob, dim=-1)
-            arange = torch.arange(0, batch_size, device=qpos_samples.device, dtype=torch.long)
-            sel_qpos = qpos_samples[arange, max_index].reshape(batch_size, -1)
-            sel_trans = trans_samples[arange, max_index].reshape(batch_size, 3)
-            ret_dict['translation'] = sel_trans
-            ret_dict['hand_qpos'] = sel_qpos
-            ret_dict['sample_translation'] = trans_samples
-            ret_dict['sample_hand_qpos'] = qpos_samples
-            ret_dict['entropy'] = -log_prob.mean(dim=-1)
+        ret_dict['nll'] = -self.flow.log_prob(gt, feat)
 
         if self.sample_func is not None:
+            raw_plane = dic['plane']
             sr_rotation = self.sample_func({"obj_pc":raw_pc}).detach()
             sr_pc = torch.einsum('nab,nbc->nac',raw_pc, sr_rotation)
             sr_plane = torch.empty_like(raw_plane)
@@ -156,8 +174,8 @@ class DexGlowNet(nn.Module):
             ret_dict['sr_rotation'] = sr_rotation
             ret_dict['sr_hand_qpos'] = sr_sel_qpos
             ret_dict['sr_translation'] = sr_sel_trans
-            ret_dict['sr_sample_hand_qpos'] = sr_qpos_samples
-            ret_dict['sr_sample_translation'] = sr_trans_samples
+            ret_dict['sr_sampled_hand_qpos'] = sr_qpos_samples
+            ret_dict['sr_sampled_translation'] = sr_trans_samples
             sr_pc = sr_pc.unsqueeze(1).repeat(1,self.sample_num,1,1).reshape(batch_size*self.sample_num,-1,3)
             sr_plane = sr_plane.unsqueeze(1).repeat(1,self.sample_num,1).reshape(batch_size*self.sample_num,4)
             cmap_loss, cmap_losses = self.cmap_func(sr_pc, sr_plane, sr_trans_samples.reshape(batch_size*self.sample_num, 3), sr_qpos_samples.reshape(batch_size*self.sample_num, 22))

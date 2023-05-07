@@ -49,7 +49,8 @@ class BaseModel(nn.Module):
         for key, item in data.items():
             if key in [""]:
                 continue
-            item = item.float().to(self.device)
+            if type(item) == torch.Tensor:
+                item = item.float().to(self.device)
             self.feed_dict[key] = item
 
     @abstractmethod
@@ -70,15 +71,17 @@ class IPDFModel(BaseModel):
         pred_dict = self.pred_dict
         loss_dict = {}
 
-        probability = pred_dict["probability"]  # [B]
-        loss = -torch.mean(torch.log(probability))
+        if "probablity" in pred_dict:
+            probability = pred_dict["probability"]  # [B]
+            loss = -torch.mean(torch.log(probability))
 
-        loss_dict["log_prob"] = loss
+            loss_dict["log_prob"] = loss
 
-        self.summarize_losses(loss_dict)
+            self.summarize_losses(loss_dict)
 
-        # for logging
-        loss_dict["mean_probability"] = torch.mean(pred_dict["probability"])
+            # for logging
+            loss_dict["mean_probability"] = torch.mean(pred_dict["probability"])
+
         if "mean_local_prob" in pred_dict:
             loss_dict["mean_local_prob"] = torch.mean(pred_dict["local_prob"])
         if "mean_confidence" in pred_dict:
@@ -109,16 +112,17 @@ class GlowModel(BaseModel):
         else:
             self.rotation_net = None
             self.contact_net = None
-        self.net = DexGlowNet(cfg, self.device, self.rotation_net, self.contact_net).to(self.device)
+        self.net = DexGlowNet(cfg, self.rotation_net, self.contact_net).to(self.device)
 
     def compute_loss(self):
         pred_dict = self.pred_dict
         loss_dict = {}
 
-        loss_dict['nll'] = torch.mean(pred_dict['nll'])
-        loss_dict['cmap_loss'] = torch.mean(pred_dict['cmap_loss'])
+        if 'nll' in loss_dict:
+            loss_dict['nll'] = torch.mean(pred_dict['nll'])
+            loss_dict['cmap_loss'] = torch.mean(pred_dict['cmap_loss'])
 
-        self.summarize_losses(loss_dict)
+            self.summarize_losses(loss_dict)
 
         # for logging
         for key in pred_dict.keys():
@@ -129,6 +133,8 @@ class GlowModel(BaseModel):
         self.loss_dict = {}
         with torch.no_grad():
             self.pred_dict = self.net(self.feed_dict)
+            self.pred_dict.update(self.net.sample(self.feed_dict))
+
             if not no_eval:
                 self.compute_loss()
 

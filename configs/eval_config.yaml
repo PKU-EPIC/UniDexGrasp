@@ -1,0 +1,57 @@
+defaults:
+    - _self_
+    - dataset: eval_data
+    - override hydra/hydra_logging: none
+    - override hydra/job_logging: none
+
+models:
+    rotation: 
+        type: ipdf
+        sample_num: 1
+    pose: 
+        type: glow
+        sample_num: 1
+
+tta:
+    contact_net:
+        type: cm_net
+    batch_size: 50
+    iterations: 300
+    lr: 0.001
+    normalize_factor: 60
+    weight_cmap: 0.07
+    weight_dis: 0.0
+    weight_pen: 10000
+    weight_spen: 10
+    weight_tpen: 1000
+    thres_dis: 0.01
+
+q1:
+    thres_pen: 0.005
+    thres_tpen: 0.01
+    m: 8
+    mu: 1
+    thres_contact: 0.01
+    nms: True
+    lambda_torque: 10
+
+# dirs
+exp_dir: ./runs/exp_tmp
+
+# wandb
+wandb_offline: True
+wandb_debug_mode: True  # and only program error will be reported
+
+resume_epoch: -1
+
+# device
+cuda_id: 0
+
+# data loader
+num_workers: 1
+batch_size: 16
+n_samples: 100
+
+# hydra
+hydra:
+    output_subdir: null

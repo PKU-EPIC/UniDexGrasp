@@ -1,5 +1,29 @@
 import torch
 
+from torch.utils.data import Dataset, DataLoader
+
+class ResultDataset(Dataset):
+    def __init__(self, result):
+        self.result = result
+        self.length = len(self.result[list(self.result.keys())[0]])
+
+    def __len__(self):
+        return self.length
+    
+    def __getitem__(self, index):
+        return {k: v[index] for k, v in self.result.items()}
+
+def flatten_result(result):
+    return {k: (torch.cat([dic[k] for dic in result]) if (type(result[0][k]) == torch.Tensor) else [obj for dic in result for obj in dic[k]]) for k in result[0].keys()}
+
+def result_to_loader(result, cfg, batch_size=None):
+    if batch_size is None:
+        batch_size = cfg['batch_size']
+    result = flatten_result(result)
+    dataset = ResultDataset(result)
+    return DataLoader(dataset, batch_size, shuffle=False, num_workers=cfg['num_workers'])
+
+
 def update_dict(old_dict, new_dict):
     for key, value in new_dict.items():
         if isinstance(value, dict):

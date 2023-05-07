@@ -95,6 +95,9 @@ class IPDFFullNet(nn.Module):
             "world_frame_hand_rotation_mat": [B, 3, 3], the rotations to be queried, during training it is the gt_R
         :return: probability p(R|obj_pc)
         """
+        if not 'world_frame_hand_rotation_mat' in inputs:
+            return dict()
+
         obj_pc = inputs["obj_pc"]  # [B, NO, 3]
 
         feat = self.backbone(obj_pc)  # [B, 128]

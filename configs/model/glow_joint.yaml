@@ -27,7 +27,6 @@ tta:
   weight_tpen: 50
   thres_dis: 0.01
 
-sample: 0
 sample_num: 8
 
 loss_weight:
