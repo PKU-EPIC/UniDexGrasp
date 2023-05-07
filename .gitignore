@@ -138,7 +138,7 @@ dmypy.json
 .DS_Store
 
 # data
-data
+dexgrasp_generation/data
 
 # exp
 exp
