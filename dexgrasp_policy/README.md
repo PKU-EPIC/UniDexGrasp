@@ -29,7 +29,7 @@ install instructions if you have any trouble running the samples.
 ### 3. Install dexgrasp
 Once Isaac Gym is installed and samples work within your current python environment, install this repo from source code:
 ```bash
-cd <PATH_TO_DEXGRASP_POLICY_INSTALL_DIR>
+cd <PATH_TO_DEXGRASP_POLICY_DIR>
 pip install -e .
 ```
 cd DexGrasp-test

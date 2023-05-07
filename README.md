@@ -61,7 +61,7 @@ python ./network/train.py TODO
 
 ### Execution Policy Learning for Dexterous Grasping
 
-Please see [README](https://github.com/PKU-EPIC/UniDexGrasp/blob/main/dexgrasp_policy/README.md) in `dexgrasp_policy` folder.
+Please see [README](https://github.com/PKU-EPIC/UniDexGrasp/blob/main/dexgrasp_policy) in `dexgrasp_policy` folder.
 
 ## Evaluation
 
