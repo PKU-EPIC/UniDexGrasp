@@ -59,9 +59,9 @@ python ./network/train.py --config-name glow_config \
 python ./network/train.py TODO
 ```
 
-### Policy
+### Execution Policy Learning for Dexterous Grasping
 
-TODO
+Please see [README](https://github.com/PKU-EPIC/UniDexGrasp/dexgrasp_policy/README.md) in `dexgrasp_policy` folder.
 
 ## Evaluation
 
