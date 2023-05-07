@@ -71,7 +71,7 @@ class IPDFModel(BaseModel):
         pred_dict = self.pred_dict
         loss_dict = {}
 
-        if "probablity" in pred_dict:
+        if "probability" in pred_dict:
             probability = pred_dict["probability"]  # [B]
             loss = -torch.mean(torch.log(probability))
 
@@ -118,7 +118,7 @@ class GlowModel(BaseModel):
         pred_dict = self.pred_dict
         loss_dict = {}
 
-        if 'nll' in loss_dict:
+        if 'nll' in pred_dict:
             loss_dict['nll'] = torch.mean(pred_dict['nll'])
             loss_dict['cmap_loss'] = torch.mean(pred_dict['cmap_loss'])
 

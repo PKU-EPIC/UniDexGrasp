@@ -56,7 +56,8 @@ python ./network/train.py --config-name glow_config \
 ### ContactNet
 
 ```commandline
-python ./network/train.py TODO
+python ./network/train.py --config-name cm_net_config \
+                          --exp-dir ./cm_net_train
 ```
 
 ### Execution Policy Learning for Dexterous Grasping

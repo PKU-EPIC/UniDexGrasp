@@ -38,7 +38,7 @@ class Meshdata(Dataset):
     
     
     def __len__(self):
-        return len(self.object__list)
+        return len(self.object_list)
     
     def __getitem__(self, idx):
         object_code, pcs_table, scale, pose_matrix = self.object_list[idx]
