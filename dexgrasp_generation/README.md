@@ -20,12 +20,21 @@ conda create -n unidexgrasp python=3.8
 conda activate unidexgrasp
 ```
 
-* Install the dependencies: (**TODO**)
+* Install the dependencies:
 ```commandline
+conda install -y pytorch==1.10.0 torchvision==0.11.0 torchaudio==0.10.0 cudatoolkit=11.3 -c pytorch -c conda-forge
+conda install -y https://mirrors.bfsu.edu.cn/anaconda/cloud/pytorch3d/linux-64/pytorch3d-0.6.2-py38_cu113_pyt1100.tar.bz2
 pip install -r requirements.txt
+cd thirdparty/pytorch_kinematics
+pip install -e .
+cd ../nflows
+pip install -e .
+cd ../
+git clone https://github.com/wrc042/CSDF.git
+cd CSDF
+pip install -e .
+cd ../../
 ```
-
-**TODO**: other manually-installed dependencies
 
 
 ## Data
@@ -69,4 +78,5 @@ python ./network/eval.py  --config-name eval_config \
 
 * [PointNet++](https://github.com/rusty1s/pytorch_geometric)
 * [Implicit PDF](https://github.com/google-research/google-research/tree/master/implicit_pdf)
-* [ProHMR](https://github.com/nkolot/nflows)
+* [CSDF](https://github.com/wrc042/CSDF)
+* [nkolot's implementation of nflows](https://github.com/nkolot/nflows)

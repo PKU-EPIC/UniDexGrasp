@@ -143,3 +143,5 @@ dexgrasp_generation/data
 # exp
 exp
 logs/
+
+dexgrasp_generation/thirdparty/CSDF
