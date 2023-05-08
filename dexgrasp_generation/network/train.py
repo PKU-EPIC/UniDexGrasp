@@ -66,7 +66,7 @@ def main(cfg):
     start_epoch = trainer.resume()
 
     """ Test """
-    def test_all(dataloader, mode, epoch):
+    def test_all(dataloader, mode, iteration):
         test_loss = {}
         for _, data in enumerate(tqdm(dataloader)):
             _, loss_dict = trainer.test(data)
@@ -76,7 +76,7 @@ def main(cfg):
         cnt = test_loss.pop("cnt")
         log_loss_summary(test_loss, cnt,
                          lambda x, y: logger.info(f'{mode} {x} is {y}'))
-        log_tensorboard(writer, mode, test_loss, cnt, epoch)
+        log_tensorboard(writer, mode, test_loss, cnt, iteration)
 
     """ Train """
     # Upon SIGINT, it will save the current model before exiting
@@ -92,13 +92,12 @@ def main(cfg):
                     cnt = train_loss.pop("cnt")
                     log_loss_summary(train_loss, cnt,
                                      lambda x, y: logger.info(f"Train {x} is {y}"))
-                    log_tensorboard(writer, "train", train_loss, cnt, epoch)
+                    log_tensorboard(writer, "train", train_loss, cnt, trainer.iteration)
 
-                    trainer.step_epoch()
                     train_loss = {}
 
-                if epoch % cfg["freq"]["test"] == 0:
-                    test_all(test_loader, "test", epoch)
+                if trainer.iteration % cfg["freq"]["test"] == 0:
+                    test_all(test_loader, "test", trainer.iteration)
 
                 if trainer.iteration % cfg["freq"]["save"] == 0:
                     trainer.save()

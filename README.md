@@ -3,70 +3,18 @@ Official code for "**UniDexGrasp: Universal Robotic Dexterous Grasping via Learn
 
 [Project Page](https://pku-epic.github.io/UniDexGrasp/) | [Paper](https://arxiv.org/abs/2303.00938)
 
-Coming soon.
 
 ![image](./images/teaser.png)
 
 
-## Installation
 
-Our code is tested on (Ubuntu xx.xx **TODO**).
+### Diverse Proposal Generation for Dexterous Grasping
 
-* Clone this repository:
-```commandline
-git clone https://github.com/PKU-EPIC/UniDexGrasp.git
-cd UniDexGrasp
-```
-
-* Create a [conda](https://www.anaconda.com/) environment and activate it:
-```commandline
-conda create -n unidexgrasp python=TODO
-conda activate unidexgrasp
-```
-
-* Install the dependencies: (**TODO**)
-```commandline
-pip install -r requirements.txt
-```
-
-**TODO**: other manually-installed dependencies
-
-
-## Data
-
-**TODO**.
-
-
-## Training
-
-### GraspIPDF
-
-```commandline
-python ./network/train.py --config-name ipdf_config \
-                          --exp-dir ./ipdf_train
-```
-
-### GraspGlow
-
-```commandline
-python ./network/train.py --config-name glow_config \
-                          --exp-dir ./glow_train
-```
-
-### ContactNet
-
-```commandline
-python ./network/train.py --config-name cm_net_config \
-                          --exp-dir ./cm_net_train
-```
+Please see [README](https://github.com/PKU-EPIC/UniDexGrasp/blob/main/dexgrasp_generation) in `dexgrasp_generation` folder.
 
 ### Execution Policy Learning for Dexterous Grasping
 
 Please see [README](https://github.com/PKU-EPIC/UniDexGrasp/blob/main/dexgrasp_policy) in `dexgrasp_policy` folder.
-
-## Evaluation
-
-**TODO**.
 
 
 ## Citation
@@ -80,8 +28,3 @@ Please see [README](https://github.com/PKU-EPIC/UniDexGrasp/blob/main/dexgrasp_p
 }
 ```
 
-
-## Acknowledgements
-
-* [PointNet++](https://github.com/rusty1s/pytorch_geometric)
-* [Implicit PDF](https://github.com/google-research/google-research/tree/master/implicit_pdf)
