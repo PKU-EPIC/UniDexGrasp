@@ -75,7 +75,7 @@ class IPDFModel(BaseModel):
             probability = pred_dict["probability"]  # [B]
             loss = -torch.mean(torch.log(probability))
 
-            loss_dict["log_prob"] = loss
+            loss_dict["nll"] = loss
 
             self.summarize_losses(loss_dict)
 

@@ -10,3 +10,4 @@ https://data.pyg.org/whl/torch-1.10.0%2Bcu113/torch_scatter-2.0.9-cp38-cp38-linu
 https://data.pyg.org/whl/torch-1.10.0%2Bcu113/torch_cluster-1.6.0-cp38-cp38-linux_x86_64.whl
 torch_geometric==2.2.0
 healpy==1.16.2
+plotly==5.14.1

@@ -18,8 +18,12 @@ import argparse
 from train import process_config
 from utils.interrupt_handler import InterruptHandler
 from network.models.contactnet.contact_network import ContactMapNet
-from utils.hand_model import AdditionalLoss
+from utils.hand_model import AdditionalLoss, add_rotation_to_hand_pose
 from utils.eval_utils import KaolinModel, eval_result
+from utils.visualize import visualize
+
+from pytorch3d import transforms as pttf
+
 
 
 def main(cfg):
@@ -79,8 +83,9 @@ def main(cfg):
     result = []
     for i, data in enumerate(tqdm(loader)):
         points = data['canon_obj_pc'].cuda()
-        hand_pose = torch.cat([data['translation'], torch.zeros_like(data['translation']), data['hand_qpos']], dim=-1)
-        data['hand_pose'] = hand_pose.clone()
+        hand_pose = torch.cat([data['canon_translation'], torch.zeros_like(data['canon_translation']), data['hand_qpos']], dim=-1)
+        old_hand_pose = hand_pose.clone()
+        data['hand_pose'] = add_rotation_to_hand_pose(old_hand_pose, data['sampled_rotation'])
         plane_parameters = data['canon_plane'].cuda()
 
         hand_pose = hand_pose.cuda()
@@ -96,7 +101,7 @@ def main(cfg):
             loss.backward()
             optimizer.step()
 
-        data['tta_hand_pose'] = hand_pose.detach().cpu()
+        data['tta_hand_pose'] = add_rotation_to_hand_pose(hand_pose.detach().cpu(), data['sampled_rotation'])
         result.append(data)
 
     result = flatten_result(result)

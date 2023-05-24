@@ -96,6 +96,9 @@ def main(cfg):
 
                     train_loss = {}
 
+                if trainer.iteration % cfg["freq"]["step_epoch"] == 0:
+                    trainer.step_epoch()
+
                 if trainer.iteration % cfg["freq"]["test"] == 0:
                     test_all(test_loader, "test", trainer.iteration)
 

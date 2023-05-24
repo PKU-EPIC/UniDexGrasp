@@ -6,7 +6,7 @@ hand_global_trans: [0, -0.7, 0.2]
 hand_global_rotation_xyz: [-1.57, 0, 3.14]
 
 ##### DFCData #####
-num_obj_points: 1024
+num_obj_points: 3000
 num_hand_points: 1024
 
 # shadow_hand_mesh_dir: "shadow_urdf/sr_grasp_description/meshes"

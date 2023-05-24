@@ -75,6 +75,8 @@ python ./network/train.py --config-name ipdf_config \
 ```commandline
 python ./network/train.py --config-name glow_config \
                           --exp-dir ./glow_train
+python ./network/train.py --config-name glow_joint_config \
+                          --exp-dir ./glow_train
 ```
 
 ### ContactNet
