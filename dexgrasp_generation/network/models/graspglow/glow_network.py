@@ -120,9 +120,17 @@ class DexGlowNet(nn.Module):
         sel_qpos = qpos_samples[arange, max_index].reshape(batch_size, -1)
         sel_trans = trans_samples[arange, max_index].reshape(batch_size, 3)
 
-        ret_dict['translation'] = sel_trans
+        ret_dict['canon_translation'] = sel_trans
+        if 'sampled_rotation' in dic.keys():
+            ret_dict['translation'] = torch.einsum('na,nba->nb', sel_trans, dic['sampled_rotation'])
+        else:
+            ret_dict['translation'] = sel_trans
         ret_dict['hand_qpos'] = sel_qpos
-        ret_dict['sampled_translation'] = trans_samples
+        ret_dict['sampled_canon_translation'] = trans_samples
+        if 'sampled_rotation' in dic.keys():
+            ret_dict['sampled_translation'] = torch.einsum('nka,nba->nkb', trans_samples, dic['sampled_rotation'])
+        else:
+            ret_dict['sampled_translation'] = trans_samples
         ret_dict['sampled_hand_qpos'] = qpos_samples
         ret_dict['entropy'] = -log_prob.mean(dim=-1)    
         ret_dict['canon_obj_pc'] = dic['canon_obj_pc']

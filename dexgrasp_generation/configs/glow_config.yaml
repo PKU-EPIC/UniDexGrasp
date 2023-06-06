@@ -18,10 +18,10 @@ wandb_debug_mode: True  # and only program error will be reported
 
 # frequency
 freq:
-    save: 1000  # per iter
-    plot: 100  # per iter, but this will step the "epoch" as if one epoch is just ${plot} iterations.
-               # Otherwise because of the large amount of data it takes too long for plotting.
-    test: 1000 # per iter
+    step_epoch: 100
+    save: 10000  # per iter
+    plot: 100  # per iter
+    test: 50000 # per iter
 
 # optimization options
 optimizer: Adam
@@ -47,8 +47,8 @@ resume_epoch: -1
 cuda_id: 0
 
 # data loader
-num_workers: 1
-batch_size: 16
+num_workers: 4
+batch_size: 64
 
 # hydra
 hydra:

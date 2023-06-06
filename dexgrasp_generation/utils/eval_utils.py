@@ -275,5 +275,5 @@ def eval_result(q1_cfg, result, hand_model, object_model, device):
         result_dict[has_tta+'pen'] = cal_pen(hand_model, object_model, result['object_code'], result['scale'], result[has_tta+'hand_pose'], device)
         result_dict[has_tta+'tpen'] = cal_tpen(hand_model, result[has_tta+'hand_pose'], result['canon_plane'], device)
         valid = (result_dict[has_tta+'pen'] < q1_cfg['thres_pen']) and (result_dict[has_tta+'tpen'] < q1_cfg['thres_tpen'])
-        result_dict[has_tta+'valid_q1'] = result[has_tta+'q1'] if valid else 0
+        result_dict[has_tta+'valid_q1'] = result_dict[has_tta+'q1'] if valid else 0
     return {k: [v] for k, v in result_dict.items()}

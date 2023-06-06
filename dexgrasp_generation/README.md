@@ -39,8 +39,27 @@ cd ../../
 
 ## Data
 
-**TODO**.
+1. Create a `data` folder under `dexgrasp_generation`:
 
+```commandline
+mkdir data
+```
+2. Download the data from [here](https://mirrors.pku.edu.cn/dl-release/UniDexGrasp_CVPR2023/), and put them under `data`. Specifically, you need `mjcf` to build the ShadowHand, and `DFCData` contains the grasp labels.
+
+<details>
+  <summary> Click to see the file structure </summary>
+  
+  ```commandline
+  UniDexGrasp
+  ├── dexgrasp_generation
+  │   ├── data
+  │   │   ├── DFCdata
+  │   │   └── mjcf
+  │   └── ...
+  ├── dexgrasp_policy
+  └── ...
+  ```
+</details>
 
 ## Training
 
@@ -55,6 +74,8 @@ python ./network/train.py --config-name ipdf_config \
 
 ```commandline
 python ./network/train.py --config-name glow_config \
+                          --exp-dir ./glow_train
+python ./network/train.py --config-name glow_joint_config \
                           --exp-dir ./glow_train
 ```
 

@@ -18,6 +18,7 @@ wandb_debug_mode: True  # and only program error will be reported
 
 # frequency
 freq:
+    step_epoch: 100
     save: 10000  # per iter
     plot: 100  # per iter
     test: 75000 # per iter
