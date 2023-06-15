@@ -23,10 +23,9 @@ from tqdm import tqdm
 def sample_projected(_):
     args, object_code, idx = _
 
-    # worker = current_process()._identity[0]
-    # os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_list[(worker - 1) % len(args.gpu_list)]
+    worker = current_process()._identity[0]
+    os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu_list[(worker - 1) % len(args.gpu_list)]
     # print(idx)
-    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
     object_path = os.path.join(args.data_root_path, object_code, 'coacd', 'decomposed.obj')
 
@@ -91,8 +90,7 @@ def sample_projected(_):
 
     pcs = []
 
-    # for pose_matrix in pose_matrices:
-    for pose_matrix in pose_matrices[:1]:
+    for pose_matrix in pose_matrices:
 
         pc_object = []
         pc_table = []
@@ -160,8 +158,7 @@ def sample_projected(_):
 
     pcs = np.stack(pcs)
 
-    # np.save(os.path.join(args.data_root_path, object_code, 'pcs_table.npy'), pcs)
-    np.save('pcs_table.npy', pcs)
+    np.save(os.path.join(args.data_root_path, object_code, 'pcs_table.npy'), pcs)
 
 
 if __name__ == '__main__':
