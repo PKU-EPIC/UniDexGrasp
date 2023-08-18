@@ -36,7 +36,10 @@ class BaseModel(nn.Module):
         for key, item in self.loss_weights.items():
             if key in loss_dict:
                 total_loss += loss_dict[key] * item
-        loss_dict['total_loss'] = total_loss
+        # loss_dict['total_loss'] = total_loss
+        total_loss = float(total_loss)
+        loss_tensor = torch.tensor([total_loss], requires_grad=True)
+        loss_dict['total_loss'] = loss_tensor
         self.loss_dict = loss_dict
 
     def update(self):
