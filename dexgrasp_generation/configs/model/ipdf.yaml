@@ -6,4 +6,4 @@ mlp_layer_sizes: [256, 256, 256]
 num_train_queries: 4096
 
 loss_weight:
-  log_prob: 1.0
+  nll: 1.0
