@@ -180,7 +180,7 @@ class IPDFFullNet(nn.Module):
         probs = torch.nn.functional.softmax(probs, dim=1)  # [B, num]
         probs = probs * (query_rotations.shape[1] / np.pi ** 2)  # [B, num]
 
-        sample_idx = uniform_sample(probs)  # [B]
+        sample_idx = uniform_sample(probs, device=probs.device)  # [B]
         sample_idx = sample_idx.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)  # [B, 1, 1, 1]
         sample_idx = sample_idx.expand(-1, -1, 3, 3)  # [B, 1, 3, 3]
 

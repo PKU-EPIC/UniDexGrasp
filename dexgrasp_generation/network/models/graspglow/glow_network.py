@@ -32,8 +32,6 @@ class Glow(nn.Module):
         return log_prob
     
     def sample_and_log_prob(self, num_samples, context):
-        if not self.initialized:
-            raise NotImplementedError()
         samples, log_prob, _ = self.flow.sample_and_log_prob(num_samples, context=context)
         samples = self.from_flow(samples)
         return samples, log_prob

@@ -162,7 +162,14 @@ class Trainer(nn.Module):
 
             self.log_string('Resume from epoch %d' % self.epoch)
 
-        self.model.load_state_dict(ckpt, strict=False)
+        try:
+            self.model.load_state_dict(ckpt)
+        except:
+            # load old version glow
+            new_ckpt = OrderedDict()
+            for name in ckpt.keys():
+                new_ckpt[name.replace('backbone.', '')] = ckpt[name]
+            self.model.load_state_dict(new_ckpt, strict=False)
 
         print(self.model)
 
