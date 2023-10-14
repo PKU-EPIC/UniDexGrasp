@@ -226,6 +226,7 @@ class ShadowHandGrasp(BaseTask):
 
         self.goal_cond = self.cfg["env"]["goal_cond"]
         self.random_prior = self.cfg['env']['random_prior']
+        self.random_time = self.cfg["env"]["random_time"]
         self.target_qpos = torch.zeros((self.num_envs, 22), device=self.device)
         self.target_hand_pos = torch.zeros((self.num_envs, 3), device=self.device)
         self.target_hand_rot = torch.zeros((self.num_envs, 4), device=self.device)
@@ -880,7 +881,7 @@ class ShadowHandGrasp(BaseTask):
         self.gym.set_dof_position_target_tensor_indexed(self.sim, gymtorch.unwrap_tensor(self.prev_targets),
                                                         gymtorch.unwrap_tensor(all_hand_indices), len(all_hand_indices))
 
-        all_indices = torch.unique(torch.cat([all_hand_indices, self.object_indices, self.table_indices, ]).to(torch.int32))  ##
+        all_indices = torch.unique(torch.cat([all_hand_indices, self.object_indices[env_ids], self.table_indices[env_ids], ]).to(torch.int32))  ##
 
         self.hand_positions[all_indices.to(torch.long), :] = self.saved_root_tensor[all_indices.to(torch.long), 0:3]
         self.hand_orientations[all_indices.to(torch.long), :] = self.saved_root_tensor[all_indices.to(torch.long), 3:7]
@@ -888,12 +889,12 @@ class ShadowHandGrasp(BaseTask):
         theta = torch_rand_float(-3.14, 3.14, (len(env_ids), 1), device=self.device)[:, 0]
 
         #reset obejct with all data:
-        new_object_rot = quat_from_euler_xyz(self.object_init_euler_xy[:,0], self.object_init_euler_xy[:,1], theta)
+        new_object_rot = quat_from_euler_xyz(self.object_init_euler_xy[env_ids,0], self.object_init_euler_xy[env_ids,1], theta)
         prior_rot_z = get_euler_xyz(quat_mul(new_object_rot, self.target_hand_rot[env_ids]))[2]
 
         # coordinate transform according to theta(object)/ prior_rot_z(hand)
         self.z_theta[env_ids] = prior_rot_z
-        prior_rot_quat = quat_from_euler_xyz(torch.tensor(1.57, device=self.device).repeat(self.num_envs, 1)[:, 0], torch.zeros_like(theta), prior_rot_z)
+        prior_rot_quat = quat_from_euler_xyz(torch.tensor(1.57, device=self.device).repeat(len(env_ids), 1)[:, 0], torch.zeros_like(theta), prior_rot_z)
 
         self.hand_orientations[hand_indices.to(torch.long), :] = prior_rot_quat
         self.hand_linvels[hand_indices.to(torch.long), :] = 0
@@ -905,14 +906,18 @@ class ShadowHandGrasp(BaseTask):
         self.root_state_tensor[self.object_indices[env_ids], 7:13] = torch.zeros_like(self.root_state_tensor[self.object_indices[env_ids], 7:13])
 
         all_indices = torch.unique(torch.cat([all_hand_indices,
-                                              self.object_indices,
-                                              self.goal_object_indices,
-                                              self.table_indices, ]).to(torch.int32))
+                                              self.object_indices[env_ids],
+                                              self.goal_object_indices[env_ids],
+                                              self.table_indices[env_ids], ]).to(torch.int32))
 
         self.gym.set_actor_root_state_tensor_indexed(self.sim,gymtorch.unwrap_tensor(self.root_state_tensor),
                                                      gymtorch.unwrap_tensor(all_indices), len(all_indices))
 
-        self.progress_buf[env_ids] = 0
+        if self.random_time:
+            self.random_time = False
+            self.progress_buf[env_ids] = torch.randint(0, self.max_episode_length, (len(env_ids),), device=self.device)
+        else:
+            self.progress_buf[env_ids] = 0
         self.reset_buf[env_ids] = 0
         self.successes[env_ids] = 0
 

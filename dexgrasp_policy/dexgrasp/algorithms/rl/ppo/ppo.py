@@ -121,6 +121,8 @@ class PPO:
 
     def run(self, num_learning_iterations, log_interval=1):
         id = -1
+        if self.is_testing:
+            self.vec_env.task.random_time = False
         current_obs = self.vec_env.reset()
         current_states = self.vec_env.get_state()
 

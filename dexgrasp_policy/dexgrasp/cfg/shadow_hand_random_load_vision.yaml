@@ -8,6 +8,7 @@ env:
   aggregateMode: 1
 
   random_prior: True
+  random_time: True
   repose_z: True
   goal_cond: False
 
