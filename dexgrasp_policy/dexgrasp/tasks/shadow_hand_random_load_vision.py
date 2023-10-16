@@ -262,6 +262,7 @@ class ShadowHandRandomLoadVision(BaseTask):
 
         self.goal_cond = self.cfg["env"]["goal_cond"]
         self.random_prior = self.cfg['env']['random_prior']
+        self.random_time = self.cfg['env']['random_time']
         self.target_qpos = torch.zeros((self.num_envs, 22), device=self.device)
         self.target_hand_pos = torch.zeros((self.num_envs, 3), device=self.device)
         self.target_hand_rot = torch.zeros((self.num_envs, 4), device=self.device)
@@ -1217,12 +1218,12 @@ class ShadowHandRandomLoadVision(BaseTask):
         dof_vel = self.shadow_hand_dof_default_vel + self.reset_dof_vel_noise * rand_floats[:, 5 + self.num_shadow_hand_dofs:5 + self.num_shadow_hand_dofs * 2]
 
         theta = torch_rand_float(-3.14, 3.14, (len(env_ids), 1), device=self.device)[:, 0]
-        new_object_rot = quat_from_euler_xyz(self.object_init_euler_xy[:,0], self.object_init_euler_xy[:,1], theta) 
+        new_object_rot = quat_from_euler_xyz(self.object_init_euler_xy[env_ids,0], self.object_init_euler_xy[env_ids,1], theta) 
         prior_rot_z = get_euler_xyz(quat_mul(new_object_rot, self.target_hand_rot[env_ids]))[2]
 
         # coordinate transform according to theta(object)/ prior_rot_z(hand)
         self.z_theta[env_ids] = prior_rot_z
-        prior_rot_quat = quat_from_euler_xyz(torch.tensor(1.57, device=self.device).repeat(self.num_envs, 1)[:, 0], torch.zeros_like(theta), prior_rot_z)
+        prior_rot_quat = quat_from_euler_xyz(torch.tensor(1.57, device=self.device).repeat(len(env_ids), 1)[:, 0], torch.zeros_like(theta), prior_rot_z)
 
         # RandomLoad
         hand_indices = self.hand_indices[env_ids].to(torch.int32)
@@ -1268,7 +1269,11 @@ class ShadowHandRandomLoadVision(BaseTask):
                                                      gymtorch.unwrap_tensor(self.root_state_tensor),
                                                      gymtorch.unwrap_tensor(all_indices), len(all_indices))
 
-        self.progress_buf[env_ids] = 0
+        if self.random_time:
+            self.random_time = False
+            self.progress_buf[env_ids] = torch.randint(0, self.max_episode_length, (len(env_ids),), device=self.device)
+        else:
+            self.progress_buf[env_ids] = 0
         self.reset_buf[env_ids] = 0
         self.successes[env_ids] = 0
 
