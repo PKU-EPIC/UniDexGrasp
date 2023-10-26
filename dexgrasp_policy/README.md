@@ -41,7 +41,7 @@ git clone git@github.com:erikwijmans/Pointnet2_PyTorch.git && cd pointnet2_ops_l
 python setup.py install
 ```
 ## Dataset
-We provide one training object instance example in `assets` folder. We will release the whole trainig/evaluation dataset in a few weeks.
+We provide one training object instance example in `assets` folder. For trainig/evaluation datasets detailed information in our paper, please refer to `dexgrasp/cfg/train_set.yaml` (3200 object instances), `dexgrasp/cfg/test_set_seen_cat.yaml` (141 object instances) and `dexgrasp/cfg/test_set_unseen_cat.yaml` (100 object instances). You can modify the `object_code_dict` in `dexgrasp/cfg/shadow_hand_grasp.yaml` and  `dexgrasp/cfg/shadow_hand_random_load_vision.yaml` to change the training/testing object instances using the above dataset informations.
 
 ## Training/Evaluation
 We provide two tasks: for the state-based policy task, please see `dexgrasp/tasks/shadow_hand_grasp.py`; for the vision-based policy tasks, in order to train on more objects within a certain GPU memory limit, we randomly load objects from the dataset in the beginning of each episode during training. please see `dexgrasp/tasks/shadow_hand_random_load_vision.py`.
