@@ -12,12 +12,14 @@ import os
 from os.path import join as pjoin
 import json
 from tqdm import tqdm, trange
+from collections import OrderedDict
 
 import argparse
 
 from train import process_config
 from utils.interrupt_handler import InterruptHandler
 from network.models.contactnet.contact_network import ContactMapNet
+from network.models.model import get_model
 from utils.hand_model import AdditionalLoss, add_rotation_to_hand_pose
 from utils.eval_utils import KaolinModel, eval_result
 from utils.visualize import visualize
@@ -59,7 +61,15 @@ def main(cfg):
     contact_cfg = compose(f"{cfg['tta']['contact_net']['type']}_config")
     with open_dict(contact_cfg):
         contact_cfg['device'] = cfg['device']
-    contact_net = ContactMapNet(contact_cfg).to(cfg['device'])
+    contact_net = ContactMapNet(contact_cfg)
+    ckpt_dir = pjoin(contact_cfg['exp_dir'], 'ckpt')
+    model_name = get_model(ckpt_dir, contact_cfg.get('resume_epoch', None))
+    ckpt = torch.load(model_name)['model']
+    new_ckpt = OrderedDict()
+    for name in ckpt.keys():
+        new_ckpt[name.replace('net.', '')] = ckpt[name]
+    contact_net.load_state_dict(new_ckpt)
+    contact_net = contact_net.to(cfg['device'])
     contact_net.eval()
     tta_loss = AdditionalLoss(cfg['tta'], 
                               cfg['device'], 

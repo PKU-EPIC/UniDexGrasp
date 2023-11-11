@@ -7,6 +7,7 @@ from abc import abstractmethod
 from copy import deepcopy
 from hydra import compose
 from omegaconf.omegaconf import open_dict
+from collections import OrderedDict
 
 base_path = os.path.dirname(__file__)
 sys.path.insert(0, base_path)
@@ -18,6 +19,26 @@ from network.models.graspipdf.ipdf_network import IPDFFullNet
 from network.models.graspglow.glow_network import DexGlowNet
 from network.models.contactnet.contact_network import ContactMapNet
 
+def get_last_model(dirname, key=""):
+    if not os.path.exists(dirname):
+        return None
+    models = [pjoin(dirname, f) for f in os.listdir(dirname) if
+              os.path.isfile(pjoin(dirname, f)) and
+              key in f and ".pt" in f]
+    if models is None or len(models) == 0:
+        return None
+    models.sort()
+    last_model_name = models[-1]
+    return last_model_name
+
+def get_model(dir, resume_epoch):
+    last_model_name = get_last_model(dir)
+    print('last model name', last_model_name)
+    if resume_epoch is not None and resume_epoch > 0:
+        specified_model = pjoin(dir, f"model_{resume_epoch:04d}.pt")
+        if os.path.exists(specified_model):
+            last_model_name = specified_model
+    return last_model_name
 
 class BaseModel(nn.Module):
     def __init__(self, cfg):
@@ -104,11 +125,27 @@ class GlowModel(BaseModel):
             rotation_cfg = compose(f"{cfg['model']['rotation_net']['type']}_config")
             with open_dict(rotation_cfg):
                 rotation_cfg['device'] = self.device
-            self.rotation_net = IPDFFullNet(rotation_cfg).to(self.device)
+            self.rotation_net = IPDFFullNet(rotation_cfg)
+            ckpt_dir = pjoin(rotation_cfg['exp_dir'], 'ckpt')
+            model_name = get_model(ckpt_dir, rotation_cfg.get('resume_epoch', None))
+            ckpt = torch.load(model_name)['model']
+            new_ckpt = OrderedDict()
+            for name in ckpt.keys():
+                new_ckpt[name.replace('net.', '')] = ckpt[name]
+            self.rotation_net.load_state_dict(new_ckpt)
+            self.rotation_net = self.rotation_net.to(self.device)
             contact_cfg = compose(f"{cfg['model']['contact_net']['type']}_config")
             with open_dict(contact_cfg):
                 contact_cfg['device'] = self.device
-            self.contact_net = ContactMapNet(contact_cfg).to(self.device)
+            self.contact_net = ContactMapNet(contact_cfg)
+            ckpt_dir = pjoin(contact_cfg['exp_dir'], 'ckpt')
+            model_name = get_model(ckpt_dir, contact_cfg.get('resume_epoch', None))
+            ckpt = torch.load(model_name)['model']
+            new_ckpt = OrderedDict()
+            for name in ckpt.keys():
+                new_ckpt[name.replace('net.', '')] = ckpt[name]
+            self.contact_net.load_state_dict(new_ckpt)
+            self.contact_net = self.contact_net.to(self.device)
         else:
             self.rotation_net = None
             self.contact_net = None

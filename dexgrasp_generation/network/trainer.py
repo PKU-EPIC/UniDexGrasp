@@ -15,7 +15,7 @@ base_dir = os.path.dirname(__file__)
 sys.path.append(pjoin(base_dir, '..'))
 sys.path.append(pjoin(base_dir, '..', '..'))
 
-from network.models.model import IPDFModel, GlowModel, ContactModel
+from network.models.model import get_model, IPDFModel, GlowModel, ContactModel
 from utils.global_utils import update_dict
 
 
@@ -71,18 +71,6 @@ def get_optimizer(params, cfg):
         assert 0, "Unsupported optimizer type {}".format(cfg['optimizer'])
     return optimizer
 
-def get_last_model(dirname, key=""):
-    if not os.path.exists(dirname):
-        return None
-    models = [pjoin(dirname, f) for f in os.listdir(dirname) if
-              os.path.isfile(pjoin(dirname, f)) and
-              key in f and ".pt" in f]
-    if models is None or len(models) == 0:
-        return None
-    models.sort()
-    last_model_name = models[-1]
-    return last_model_name
-
 
 class Trainer(nn.Module):
     def __init__(self, cfg, logger):
@@ -132,14 +120,6 @@ class Trainer(nn.Module):
         self.momentum = momentum
 
     def resume(self):
-        def get_model(dir, resume_epoch):
-            last_model_name = get_last_model(dir)
-            print('last model name', last_model_name)
-            if resume_epoch is not None and resume_epoch > 0:
-                specified_model = pjoin(dir, f"model_{resume_epoch:04d}.pt")
-                if os.path.exists(specified_model):
-                    last_model_name = specified_model
-            return last_model_name
 
         ckpt = OrderedDict()
 
