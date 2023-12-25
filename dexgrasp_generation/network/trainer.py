@@ -148,8 +148,11 @@ class Trainer(nn.Module):
             # load old version glow
             new_ckpt = OrderedDict()
             for name in ckpt.keys():
+                if name in ['net.backbone.flow.lower_bound', 'net.backbone.flow.upper_bound' ]:
+                    continue
                 new_ckpt[name.replace('backbone.', '')] = ckpt[name]
-            self.model.load_state_dict(new_ckpt, strict=False)
+                
+            self.model.load_state_dict(new_ckpt, strict=True)
 
         print(self.model)
 
