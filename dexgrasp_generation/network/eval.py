@@ -67,7 +67,11 @@ def main(cfg):
     ckpt = torch.load(model_name)['model']
     new_ckpt = OrderedDict()
     for name in ckpt.keys():
-        new_ckpt[name.replace('net.', '')] = ckpt[name]
+        new_name = name.replace('net.', '')
+        if new_name.startswith('backbone.'):
+            new_name = new_name.replace('backbone.', '')
+        new_ckpt[new_name] = ckpt[name]
+    
     contact_net.load_state_dict(new_ckpt)
     contact_net = contact_net.to(cfg['device'])
     contact_net.eval()
