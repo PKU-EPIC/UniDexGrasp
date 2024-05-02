@@ -141,18 +141,25 @@ class Trainer(nn.Module):
                 self.scheduler = get_scheduler(self.optimizer, self.cfg, self.epoch)
 
             self.log_string('Resume from epoch %d' % self.epoch)
-
-        try:
-            self.model.load_state_dict(ckpt)
-        except:
-            # load old version glow
-            new_ckpt = OrderedDict()
-            for name in ckpt.keys():
-                if name in ['net.backbone.flow.lower_bound', 'net.backbone.flow.upper_bound' ]:
-                    continue
-                new_ckpt[name.replace('backbone.', '')] = ckpt[name]
+            
+            try:
+                self.model.load_state_dict(ckpt)
+            except:
+                # load old version glow
+                new_ckpt = OrderedDict()
+                for name in ckpt.keys():
+                    if name in ['net.backbone.flow.lower_bound', 'net.backbone.flow.upper_bound' ]:
+                        continue
+                    new_ckpt[name.replace('backbone.', '')] = ckpt[name]
                 
-            self.model.load_state_dict(new_ckpt, strict=True)
+                try:
+                    self.model.load_state_dict(new_ckpt)
+                except:
+                    # glow before joint training has no contact_net and rotation_net
+                    nnew_ckpt = OrderedDict()
+                    for name in ckpt.keys():
+                        nnew_ckpt[name[4:]] = new_ckpt[name]
+                    self.model.net.load_state_dict(nnew_ckpt)
 
         print(self.model)
 

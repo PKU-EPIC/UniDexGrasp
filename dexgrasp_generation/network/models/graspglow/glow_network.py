@@ -101,9 +101,9 @@ class DexGlowNet(nn.Module):
         ret_dict = {}
 
         if not 'canon_obj_pc' in dic.keys():
-            dic['canon_obj_pc'] = torch.einsum('nab,nbc->nac', dic['obj_pc'], dic['sampled_rotation'])
+            dic['canon_obj_pc'] = torch.einsum('nab,ncb->nac', dic['obj_pc'], dic['sampled_rotation'])
             plane = dic['plane'].clone()
-            plane[:, :3] = torch.einsum('nb,nbc->nc',plane[:, :3], dic['sampled_rotation'])
+            plane[:, :3] = torch.einsum('nbc,nc->nb', dic['sampled_rotation'], plane[:, :3])
             ret_dict['canon_plane'] = plane
             
         pc = dic['canon_obj_pc']
@@ -120,13 +120,13 @@ class DexGlowNet(nn.Module):
 
         ret_dict['canon_translation'] = sel_trans
         if 'sampled_rotation' in dic.keys():
-            ret_dict['translation'] = torch.einsum('na,nba->nb', sel_trans, dic['sampled_rotation'])
+            ret_dict['translation'] = torch.einsum('na,nab->nb', sel_trans, dic['sampled_rotation'])
         else:
             ret_dict['translation'] = sel_trans
         ret_dict['hand_qpos'] = sel_qpos
         ret_dict['sampled_canon_translation'] = trans_samples
         if 'sampled_rotation' in dic.keys():
-            ret_dict['sampled_translation'] = torch.einsum('nka,nba->nkb', trans_samples, dic['sampled_rotation'])
+            ret_dict['sampled_translation'] = torch.einsum('nka,nab->nkb', trans_samples, dic['sampled_rotation'])
         else:
             ret_dict['sampled_translation'] = trans_samples
         ret_dict['sampled_hand_qpos'] = qpos_samples
@@ -164,9 +164,9 @@ class DexGlowNet(nn.Module):
         if self.sample_func is not None:
             raw_plane = dic['plane']
             sr_rotation = self.sample_func({"obj_pc":raw_pc}).detach()
-            sr_pc = torch.einsum('nab,nbc->nac',raw_pc, sr_rotation)
+            sr_pc = torch.einsum('nab,ncb->nac', raw_pc, sr_rotation)
             sr_plane = torch.empty_like(raw_plane)
-            sr_plane[:, :3] = torch.einsum('nb,nbc->nc',raw_plane[:, :3], sr_rotation)
+            sr_plane[:, :3] = torch.einsum('nbc,nc->nb', sr_rotation, raw_plane[:, :3])
             sr_plane[:, 3] = raw_plane[:, 3]
 
             sr_pc_transformed = sr_pc.transpose(1, 2).contiguous()  # [B, 3, N]

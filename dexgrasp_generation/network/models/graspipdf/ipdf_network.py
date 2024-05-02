@@ -84,7 +84,6 @@ class IPDFFullNet(nn.Module):
         self.pre_generated_grid_queries = torch.stack([
             matrix
             for matrix in self.pre_generated_grid_queries
-            if matrix[2, 1] >= 0.5 and matrix[2, 2] <= -0.5
         ])
 
     def forward(self, inputs):

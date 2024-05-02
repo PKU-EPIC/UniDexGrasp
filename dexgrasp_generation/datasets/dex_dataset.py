@@ -147,19 +147,21 @@ class DFCDataset(Dataset):
         table_pc = torch.cat([table_pc, table_pc_extra])
         table_pc_cropped = table_pc[table_pc[:, 0] ** 2 + table_pc[:, 1] ** 2 < max_diameter]
         table_pc_cropped_sampled = pytorch3d.ops.sample_farthest_points(table_pc_cropped.unsqueeze(0), K=1000)[0][0]
-        object_pc = (torch.cat([object_pc, table_pc_cropped_sampled]) - pose_matrix[:3, 3] / recorded_data['scale'].item()) @ pose_matrix[:3, :3]  # [N, 3]
+        object_pc = torch.cat([object_pc, table_pc_cropped_sampled])  # [N, 3]
 
         if self.dataset_cfg['fps']:
             obj_pc = pytorch3d.ops.sample_farthest_points(object_pc.unsqueeze(0), K=self.num_obj_points)[0][0]  # [NO, 3]
         else:
             obj_pc = object_pc
 
+        global_rotation_mat = torch.from_numpy(global_rotation_mat).float()
+        global_translation = torch.from_numpy(global_translation).float()
         if self.cfg["network_type"] == "ipdf":
-            plane_pose = plane2pose(plane)
-            global_rotation_mat = plane_pose[:3, :3] @ global_rotation_mat
-            obj_gt_rotation = global_rotation_mat.T  # so that obj_gt_rotation @ obj_pc is what we want
+            # plane_pose = plane2pose(plane)
+            # global_rotation_mat = plane_pose[:3, :3] @ global_rotation_mat
+            obj_gt_rotation = (pose_matrix[:3, :3] @ global_rotation_mat).T  # so that obj_gt_rotation @ obj_pc is what we want
             # place the table horizontally
-            obj_pc = obj_pc @ plane_pose[:3, :3].T + plane_pose[:3, 3]
+            # obj_pc = obj_pc @ plane_pose[:3, :3].T + plane_pose[:3, 3]
 
             ret_dict = {
                 "obj_pc": obj_pc,
@@ -167,9 +169,9 @@ class DFCDataset(Dataset):
                 "world_frame_hand_rotation_mat": global_rotation_mat,
             }
         elif self.cfg["network_type"] == "glow":  # TODO: 2: glow
-            canon_obj_pc = obj_pc @ global_rotation_mat
+            canon_obj_pc = torch.einsum('ba,cb,nc->na', global_rotation_mat, pose_matrix[:3, :3], obj_pc)
             hand_rotation_mat = np.eye(3)
-            hand_translation = global_translation @ global_rotation_mat
+            hand_translation = torch.einsum('a,ab->b', global_translation, global_rotation_mat)
             plane = torch.zeros_like(torch.from_numpy(plane))
             plane[..., 2] = 1
             ret_dict = {
@@ -182,9 +184,9 @@ class DFCDataset(Dataset):
             }
         elif self.cfg["network_type"] == "cm_net":  # TODO: 2: Contact Map
             # Canonicalize pc
-            obj_pc = obj_pc @ global_rotation_mat
+            canon_obj_pc = torch.einsum('ba,cb,nc->na', global_rotation_mat, pose_matrix[:3, :3], obj_pc)
             hand_rotation_mat = np.eye(3)
-            hand_translation = global_translation @ global_rotation_mat
+            hand_translation = torch.einsum('a,ab->b', global_translation, global_rotation_mat)
 
             gt_hand_mesh = self.hand_builder.get_hand_mesh(hand_rotation_mat,
                                                              hand_translation,
@@ -193,10 +195,10 @@ class DFCDataset(Dataset):
                 gt_hand_mesh,
                 num_samples=self.num_hand_points
             ).type(torch.float32).squeeze()  # torch.tensor: [NH, 3]
-            contact_map = contact_map_of_m_to_n(obj_pc, gt_hand_pc)  # [NO]
+            contact_map = contact_map_of_m_to_n(canon_obj_pc, gt_hand_pc)  # [NO]
 
             ret_dict = {
-                "canon_obj_pc": obj_pc,
+                "canon_obj_pc": canon_obj_pc,
                 "gt_hand_pc": gt_hand_pc,
                 "contact_map": contact_map,
                 "observed_hand_pc": gt_hand_pc
@@ -214,13 +216,7 @@ class DFCDataset(Dataset):
                 ).type(torch.float32).squeeze()  # torch.tensor: [NH, 3]
                 ret_dict["observed_hand_pc"] = pert_hand_pc
         else:
-            print("WARNING: entered undefined dataset type!")
-            ret_dict = {
-                "obj_pc": obj_pc,
-                "hand_qpos": qpos,
-                "world_frame_hand_rotation_mat": global_rotation_mat,
-                "world_frame_hand_translation": global_translation
-            }
+            raise NotImplementedError
         ret_dict["obj_scale"] = object_scale
         return ret_dict
 

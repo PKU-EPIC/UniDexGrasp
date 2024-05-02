@@ -145,3 +145,9 @@ exp
 logs/
 
 dexgrasp_generation/thirdparty/CSDF
+
+bak
+runs
+eval/
+
+runs_old

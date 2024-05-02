@@ -10,7 +10,7 @@ use_DFCData: True
 use_Shadow: True
 
 # dirs
-exp_dir: ./runs/exp_tmp
+exp_dir: ./runs/exp_glow
 
 # wandb
 wandb_offline: True
@@ -40,7 +40,7 @@ momentum_min: 0.01
 
 # training options
 weight_init: xavier
-total_epoch: 250
+total_epoch: 2000
 resume_epoch: -1
 
 # device

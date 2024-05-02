@@ -10,7 +10,7 @@ use_DFCData: True
 use_Shadow: True
 
 # dirs
-exp_dir: ./runs/exp_tmp
+exp_dir: ./runs/exp_glow
 
 # wandb
 wandb_offline: True

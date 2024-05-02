@@ -11,6 +11,7 @@ import torch
 import trimesh as tm
 import transforms3d
 from torch.utils.data import Dataset
+import pytorch3d.ops
 
 
 class Meshdata(Dataset):
@@ -43,6 +44,18 @@ class Meshdata(Dataset):
     def __getitem__(self, idx):
         object_code, pcs_table, scale, pose_matrix = self.object_list[idx]
         object_pc = torch.from_numpy(scale * (pcs_table @ pose_matrix[:3, :3].T + pose_matrix[:3, 3]))
+        only_object_pc = object_pc[:3000]
+        table_pc = object_pc[3000:]
+        max_diameter = 0.2
+        n_samples_table_extra = 2000
+        min_diameter = (only_object_pc[:, 0] ** 2 + only_object_pc[:, 1] ** 2).max()
+        distances = min_diameter + (max_diameter - min_diameter) * torch.rand(n_samples_table_extra, dtype=torch.float) ** 0.5
+        theta = 2 * np.pi * torch.rand(n_samples_table_extra, dtype=torch.float)
+        table_pc_extra = torch.stack([distances * torch.cos(theta), distances * torch.sin(theta), torch.zeros_like(distances)], dim=1)
+        table_pc = torch.cat([table_pc, table_pc_extra])
+        table_pc_cropped = table_pc[table_pc[:, 0] ** 2 + table_pc[:, 1] ** 2 < max_diameter]
+        table_pc_cropped_sampled = pytorch3d.ops.sample_farthest_points(table_pc_cropped.unsqueeze(0), K=1000)[0][0]
+        object_pc = torch.cat([only_object_pc, table_pc_cropped_sampled])
         plane = torch.zeros_like(torch.from_numpy(pose_matrix[2]))
         plane[2] = 1
         #plane = pose_matrix[2].copy()
